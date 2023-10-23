@@ -1,0 +1,62 @@
+1)
+
+
+2)
+- .config/odoo/odoo.conf
+==> Config, pour voir le temps des requêtes SQL
+- Lancer le script pour parser le fichier
+- Lancer pgbadger
+
+Une fois qu'on a une requête sql:
+> psql
+EXPLAIN ANALYSE <SQL REQUEST>
+
+==> Aller sur dalibo
+
+
+
+Une fois qu'on a l'index:
+> CREATE INDEX sale_order_line_product_id_index ON sale_order_line (product_id);
+
+
+
+
+3) Locust (Test de montée en charge)
+
+
+4) Profiling
+
+
+
+
+Commands:
+vim .config/odoo/odoo.conf
+décom log-sql
++ odoosh-restart http
+scp logs > local
+scp <id>@<db>.dev.odoo.com:logs/odoo.log .
+python3 parser.py
+pgbadger odoo_parsed.log -f stderr
+EXPLAIN ANALYSE
+dalibo
+
+class SaleOrder(models.Model):
+    _inherit = "sale.order"
+    
+    def init(self):
+        self._cr.execute('''
+            CREATE INDEX IF NOT EXISTS ir_attachment_url
+            ON %s USING gin (
+                unaccent(url::text) gin_trgm_ops)
+        ''' % self._table)
+
+        self._cr.execute('''
+            CREATE INDEX IF NOT EXISTS ir_attachment_url
+            ON %s (
+                res_model,
+                type
+            )
+        ''' % self._table)
+
+
+
